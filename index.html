@@ -112,6 +112,24 @@
 
     button:hover { background: #1d4ed8; }
 
+    .copy-button {
+      display: block;
+      max-width: 100%;
+      margin: 12px auto 0;
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .copy-status {
+      color: #555;
+      font-size: 14px;
+      min-height: 20px;
+      margin: 12px 0 0;
+    }
+
     .notice {
       color: #999;
       font-size: 12px;
@@ -164,6 +182,12 @@
       로또 번호 5게임 추천
     </button>
 
+    <button id="copy-button" class="copy-button"
+            onclick="copyLotto()" disabled>
+      추천 번호 복사
+    </button>
+    <p id="copy-status" class="copy-status" role="status"></p>
+
     <p class="notice">
       무작위 번호 추천 서비스입니다.<br>
       당첨을 보장하지 않습니다.<br>
@@ -173,9 +197,13 @@
   </main>
 
   <script>
+    let recommendedGames = [];
+
     function generateLotto() {
       const results = document.getElementById("results");
       results.innerHTML = "";
+      recommendedGames = [];
+      document.getElementById("copy-status").textContent = "";
 
       const labels = ["A", "B", "C", "D", "E"];
 
@@ -197,6 +225,8 @@
         const numbers = pool
           .slice(0, 6)
           .sort((a, b) => a - b);
+
+        recommendedGames.push(`${labels[game]}: ${numbers.join(", ")}`);
 
         const row = document.createElement("div");
         row.className = "game";
@@ -232,6 +262,59 @@
         row.appendChild(numberBox);
         results.appendChild(row);
       }
+
+      document.getElementById("copy-button").disabled = false;
+    }
+
+    // Clipboard API를 사용할 수 없는 브라우저를 위한 보조 복사 방식
+    function copyWithTextArea(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.readOnly = true;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      textArea.style.fontSize = "16px";
+      document.body.appendChild(textArea);
+
+      try {
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, text.length);
+        return document.execCommand("copy");
+      } finally {
+        textArea.remove();
+        document.getElementById("copy-button").focus({ preventScroll: true });
+      }
+    }
+
+    async function copyLotto() {
+      if (recommendedGames.length === 0) return;
+
+      const text = recommendedGames.join("\n");
+      const status = document.getElementById("copy-status");
+      let copied = false;
+      status.textContent = "";
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        }
+      } catch (error) {
+        // 권한 거부 등으로 실패하면 보조 방식으로 다시 시도합니다.
+      }
+
+      if (!copied) {
+        try {
+          copied = copyWithTextArea(text);
+        } catch (error) {
+          copied = false;
+        }
+      }
+
+      status.textContent = copied
+        ? "복사 완료"
+        : "복사하지 못했습니다. 브라우저의 복사 권한을 확인해 주세요.";
     }
   </script>
 </body>
