@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>로또 6/45 번호 추천기</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f1f5f9;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 650px;
+      padding: 30px 20px;
+      margin: 25px auto;
+      background: white;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 25px #00000015;
+    }
+
+    .logo {
+      display: inline-block;
+      text-decoration: none;
+      color: #263b7a;
+      font-size: 35px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .logo span { color: #f2a900; }
+
+    .official-logo {
+      max-width: 220px;
+      max-height: 90px;
+      display: block;
+      margin: 0 auto 10px;
+    }
+
+    h1 { font-size: 24px; }
+
+    .description {
+      color: #777;
+      margin-bottom: 25px;
+    }
+
+    .game {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .game-label {
+      font-size: 18px;
+      font-weight: bold;
+      color: #555;
+      width: 25px;
+    }
+
+    .numbers {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .ball {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      box-shadow: 0 3px 6px #00000020;
+    }
+
+    .yellow { background: #fbc400; }
+    .blue   { background: #69c8f2; }
+    .red    { background: #ff7272; }
+    .gray   { background: #aaaaaa; }
+    .green  { background: #b0d840; }
+
+    button {
+      margin-top: 30px;
+      padding: 16px 35px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: #1d4ed8; }
+
+    .notice {
+      color: #999;
+      font-size: 12px;
+      margin-top: 25px;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 25px 10px; }
+      .game { gap: 6px; }
+      .numbers { gap: 5px; }
+      .ball {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+      }
+      .logo { font-size: 29px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <!-- 공식 로고 파일을 준비하면 아래 img 사용 -->
+    <!--
+    <img src="lotto-logo.png"
+         alt="로또 6/45 공식 로고"
+         class="official-logo">
+    -->
+
+    <a class="logo"
+       href="https://www.dhlottery.co.kr/lt645/intro"
+       target="_blank"
+       rel="noopener noreferrer">
+      Lotto <span>6/45</span>
+    </a>
+
+    <h1>로또 번호 추천기</h1>
+
+    <p class="description">
+      버튼을 누르면 5게임을 추천합니다.
+    </p>
+
+    <div id="results" aria-live="polite">
+      <p>아래 버튼을 눌러주세요.</p>
+    </div>
+
+    <button onclick="generateLotto()">
+      로또 번호 5게임 추천
+    </button>
+
+    <p class="notice">
+      무작위 번호 추천 서비스입니다.<br>
+      당첨을 보장하지 않습니다.<br>
+      동행복권 공식 사이트가 아닙니다.
+    </p>
+
+  </main>
+
+  <script>
+    function generateLotto() {
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+
+      const labels = ["A", "B", "C", "D", "E"];
+
+      // 5게임 생성
+      for (let game = 0; game < 5; game++) {
+
+        const pool = Array.from(
+          { length: 45 },
+          (_, i) => i + 1
+        );
+
+        // 무작위로 숫자 섞기
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        // 중복 없는 6개 번호 선택
+        const numbers = pool
+          .slice(0, 6)
+          .sort((a, b) => a - b);
+
+        const row = document.createElement("div");
+        row.className = "game";
+
+        const label = document.createElement("div");
+        label.className = "game-label";
+        label.textContent = labels[game];
+        row.appendChild(label);
+
+        const numberBox = document.createElement("div");
+        numberBox.className = "numbers";
+
+        numbers.forEach(number => {
+          const ball = document.createElement("div");
+          ball.className = "ball";
+
+          if (number <= 10) {
+            ball.classList.add("yellow");
+          } else if (number <= 20) {
+            ball.classList.add("blue");
+          } else if (number <= 30) {
+            ball.classList.add("red");
+          } else if (number <= 40) {
+            ball.classList.add("gray");
+          } else {
+            ball.classList.add("green");
+          }
+
+          ball.textContent = number;
+          numberBox.appendChild(ball);
+        });
+
+        row.appendChild(numberBox);
+        results.appendChild(row);
+      }
+    }
+  </script>
+</body>
+</html>
